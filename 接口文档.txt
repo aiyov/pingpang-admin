@@ -1,0 +1,101 @@
+1:post  比赛信息列表 /system/comp_info
+/**
+     * 比赛名称(英文)
+     */
+    private String compNameEn;
+    /**
+     * 比赛名称(中文)
+     */
+    private String compNameCn;
+    /**
+     * 对手中文(译)名
+     */
+    private String rivalChineseName;
+    /**
+     * 比赛项目(中文)
+     * 男单（单项）、男单（团体）、男双（单项）、男双（团体）、混双（单项）、混双（团体）
+     */
+    private String compEventsCn;
+    /**
+     * 己方胜负
+     */
+    private String matchResult;
+    /**
+     * 赛果
+     */
+    private String compResult;
+    /**
+     * 比赛完整时间
+     */
+    private String compDatetimeStart;
+    private String compDatetimeEnd;
+ /**
+     * 页面大小
+     */
+    @NotNull(message = "每页的数量不能为空")
+    @Min(value = 1, message = "页面最小为1")
+    private Integer size = 10;
+    /**
+     * 第几页
+     */
+    @NotNull(message = "当前页不能为空")
+    @Min(value = 1, message = "页码最小为1")
+    private Integer current = 1;
+
+2:GET 运动员列表  /player/all
+
+3:POST     运动员信息更新接口  /system/player/update
+/**
+     * 主键ID
+     */
+    private Long id;
+    /**
+     * 性别
+     */
+    private String gender;
+    /**
+     * 中文名
+     */
+    private String chineseName;
+    /**
+     * 英文名
+     */
+    private String englishName;
+    /**
+     * 所属协会
+     */
+    private String association;
+    /**
+     * 世界排名
+     */
+    private Integer ranking;
+    /**
+     * 积分
+     */
+    private Integer score;
+    /**
+     * 打法(中文)
+     */
+    private String playStyleCn;
+    /**
+     * 打法(英文)
+     */
+    private String playStyleEn;
+    /**
+     * 年龄
+     */
+    private Integer age;
+    /**
+     * 生日
+     */
+    private String birthDate;
+
+4:POST  远动员信息详情查询接口  /system/player
+Content-Type: application/json
+{
+  "name": "张本智和"
+}
+
+5:POST 登录 /user/login 
+private string account
+private string password
