@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NODE_ENV !== 'development' ? '/api/proxy' : process.env.NEXT_PUBLIC_API_URL;
+const BASE_URL = process.env.NODE_ENV === 'development' ? '/api/proxy' : process.env.NEXT_PUBLIC_API_URL;
 
 export const fetcher = async <T>(url: string, options: RequestInit = {}) => {
   const response = await fetch(BASE_URL + url, {
