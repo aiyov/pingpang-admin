@@ -9,14 +9,20 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCompetitions, useUpdateCompetitionInfo, useDeleteCompetition } from '@/hooks/use-api';
 import { Competition, CompetitionListRequest, CompetitionUpdateRequest } from '@/types';
-import { Edit, Trash2, Search } from 'lucide-react';
+import { Edit, Search } from 'lucide-react';
 
 export default function CompetitionsPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingCompetition, setEditingCompetition] = useState<Competition | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
-  
+  const [requestParams, setRequestParams] = useState<CompetitionListRequest>({
+    current: currentPage,
+    size: 10,
+    compNameCn: '',
+    rivalChineseName: '',
+    compEventsCn: '',
+    matchResult: ''
+  });
   const [filters, setFilters] = useState({
     compNameCn: '',
     rivalChineseName: '',
@@ -49,15 +55,10 @@ export default function CompetitionsPage() {
     rivalEnglishName: ''
   });
 
-  const requestParams: CompetitionListRequest = {
-    ...filters,
-    size: pageSize,
-    current: currentPage
-  };
+
 
   const { data: competitionsData, isLoading } = useCompetitions(requestParams);
   const updateCompetitionMutation = useUpdateCompetitionInfo();
-  const deleteCompetitionMutation = useDeleteCompetition();
 
   const handleEdit = (competition: Competition) => {
     setEditingCompetition(competition);
@@ -78,6 +79,14 @@ export default function CompetitionsPage() {
 
   const handleSearch = () => {
     setCurrentPage(1);
+    setRequestParams({
+      ...requestParams,
+      compNameCn: filters.compNameCn,
+      rivalChineseName: filters.rivalChineseName,
+      compEventsCn: filters.compEventsCn,
+      matchResult: filters.matchResult,
+      current: 1,
+    });
   };
 
   const handleReset = () => {
@@ -88,16 +97,20 @@ export default function CompetitionsPage() {
       matchResult: ''
     });
     setCurrentPage(1);
+    setRequestParams({
+      ...requestParams,
+      compNameCn: '',
+      rivalChineseName: '',
+      compEventsCn: '',
+      matchResult: '',
+      current: 1,
+    });
   };
 
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-64">加载中...</div>;
-  }
-
-  const totalPages = Math.ceil((competitionsData?.total || 0) / pageSize);
+  const totalPages = Math.ceil((competitionsData?.total || 0) / 10);
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="mx-auto p-6">
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
@@ -182,7 +195,12 @@ export default function CompetitionsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {competitionsData?.records.map((competition) => (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center">加载中...</TableCell>
+                </TableRow>
+              ) : (
+              competitionsData?.records.map((competition) => (
                 <TableRow key={competition.id}>
                   <TableCell>{competition.compNameCn}</TableCell>
                   <TableCell>{competition.rivalChineseName}</TableCell>
@@ -208,7 +226,7 @@ export default function CompetitionsPage() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              )))}
             </TableBody>
           </Table>
 

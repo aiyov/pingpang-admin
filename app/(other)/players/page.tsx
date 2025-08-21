@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,8 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePlayers, useUpdatePlayer } from '@/hooks/use-api';
-import { Player } from '@/types';
-import { Edit } from 'lucide-react';
+import { Player, PlayerQueryRequest } from '@/types';
+import { Edit, Search } from 'lucide-react';
 
 export default function PlayersPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -27,9 +27,43 @@ export default function PlayersPage() {
     birthDate: ''
   });
 
-  const { data: players = [], isLoading } = usePlayers();
-  const updatePlayerMutation = useUpdatePlayer();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [name, setName] = useState('')
+  const [requestParams, setRequestParams] = useState<PlayerQueryRequest>({
+    current: currentPage,
+    size: 10,
+    name: ''
+  });
 
+  useEffect(() => {
+    setRequestParams({
+      ...requestParams,
+      current: currentPage,
+    });
+  }, [currentPage]);
+
+  const handleReset = () => {
+    setCurrentPage(1);
+    setName('');
+    setRequestParams({
+      current: 1,
+      size: 10,
+      name: ''
+    });
+  };
+  
+  const { data: playerData, isLoading } = usePlayers(requestParams);
+  const players = playerData?.records || [];
+  const updatePlayerMutation = useUpdatePlayer();
+  
+  const handleSearch = () => {
+    setCurrentPage(1);
+    setRequestParams({
+      ...requestParams,
+      name: name,
+      current: 1,
+    });
+  };
 
   const handleEdit = (player: Player) => {
     setEditingPlayer(player);
@@ -62,12 +96,11 @@ export default function PlayersPage() {
     }
   };
 
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-64">加载中...</div>;
-  }
+
+  const totalPages = Math.ceil(playerData?.total || 0 / 10);
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="mx-auto p-6">
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
@@ -79,6 +112,28 @@ export default function PlayersPage() {
           </div>
         </CardHeader>
         <CardContent>
+        <div className="mb-6 p-4 border rounded-lg bg-gray-50">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="text-sm font-medium">运动员名称</label>
+                <Input
+                  placeholder="请输入运动员名称"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              
+            </div>
+            <div className="flex justify-end space-x-2 mt-4">
+              <Button variant="outline" onClick={handleReset}>
+                重置
+              </Button>
+              <Button onClick={handleSearch}>
+                <Search className="w-4 h-4 mr-2" />
+                搜索
+              </Button>
+            </div>
+          </div>
           <Table>
             <TableHeader>
               <TableRow>
@@ -93,7 +148,12 @@ export default function PlayersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {players.map((player) => (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center">加载中...</TableCell>
+                </TableRow>
+              ) : (
+              players.map((player) => (
                 <TableRow key={player.id}>
                   <TableCell>{player.chineseName}</TableCell>
                   <TableCell>{player.englishName}</TableCell>
@@ -114,9 +174,31 @@ export default function PlayersPage() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              )))}
             </TableBody>
           </Table>
+          {/* 分页 */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center space-x-2 mt-4">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+              >
+                上一页
+              </Button>
+              <span className="text-sm">
+                第 {currentPage} 页，共 {totalPages} 页
+              </span>
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+              >
+                下一页
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 

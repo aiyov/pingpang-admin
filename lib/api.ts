@@ -7,7 +7,8 @@ import {
   Competition,
   CompetitionListRequest,
   CompetitionListResponse,
-  CompetitionUpdateRequest
+  CompetitionUpdateRequest,
+  PlayerListResponse
 } from '@/types';
 import { fetcher } from './fetcher';
 import { mockPlayers, mockCompetitions, mockUsers } from './mock-data';
@@ -16,17 +17,34 @@ import { mockPlayers, mockCompetitions, mockUsers } from './mock-data';
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // 登录API
-export const login = async (data: LoginRequest): Promise<string> => {
-  const response = await fetcher('/user/login', {
-    method: 'POST',
-    body: JSON.stringify(data)
-  });
-  return response as string;
+export const login = async (data: LoginRequest): Promise<LoginResponse> => {
+  await delay(500);
+  
+  const user = mockUsers.find(u => u.account === data.account && u.password === data.password);
+  
+  if (!user) {
+    throw new Error('用户名或密码错误');
+  }
+  
+  return {
+    token: `mock-token-${Date.now()}`,
+    user: user.user
+  };
 };
 
 // 获取运动员列表
-export const getPlayers = async (): Promise<Player[]> => {
-  return await fetcher('/player/all');
+export const getPlayers = async (params:any): Promise<PlayerListResponse> => {
+  const response: PlayerListResponse = await fetcher('/system/player', {
+    method: 'POST',
+    body: JSON.stringify(params)
+  });
+  const total = response.total;
+  return {
+    records: response.records,
+    total,
+    size: params.size,
+    current: response.current
+  };
 };
 
 // 更新运动员信息
@@ -76,7 +94,7 @@ export const addPlayer = async (data: Omit<Player, 'id'>): Promise<Player> => {
 };
 
 // 获取比赛列表
-export const getCompetitions = async (params: CompetitionListResponse): Promise<CompetitionListResponse> => {
+export const getCompetitions = async (params: CompetitionListRequest): Promise<CompetitionListResponse> => {
   const response: CompetitionListResponse = await fetcher('/system/comp_info', {
     method: 'POST',
     body: JSON.stringify(params)

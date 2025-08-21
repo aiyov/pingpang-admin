@@ -13,6 +13,13 @@ export interface LoginResponse {
   };
 }
 
+export interface PlayerListResponse {
+  records: Player[];
+  total: number;
+  size: number;
+  current: number;
+}
+
 // 运动员相关类型
 export interface Player {
   id: number;
@@ -32,6 +39,8 @@ export interface PlayerUpdateRequest extends Player {}
 
 export interface PlayerQueryRequest {
   name: string;
+  current: number;
+  size: number;
 }
 
 // 比赛相关类型

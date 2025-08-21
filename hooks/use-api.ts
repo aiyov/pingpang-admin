@@ -18,10 +18,10 @@ export const useLogin = () => {
 };
 
 // 获取运动员列表
-export const usePlayers = () => {
+export const usePlayers = (params: any) => {
   return useQuery({
-    queryKey: ['players'],
-    queryFn: () => api.getPlayers(),
+    queryKey: ['players', params],
+    queryFn: () => api.getPlayers(params),
   });
 };
 

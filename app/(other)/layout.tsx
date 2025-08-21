@@ -1,4 +1,4 @@
-import Navbar from "@/components/layout/navbar";
+import Navbar from "@/components/layout/sidebar";
 
 export default function OtherLayout({
   children,

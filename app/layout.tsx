@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers/query-provider";
-import Navbar from "@/components/layout/navbar";
+import Sidebar from "@/components/layout/sidebar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,7 +21,10 @@ export default function RootLayout({
       <body className={inter.className}>
         <QueryProvider>
           <div className="min-h-screen bg-gray-50">
-            {children}
+            <Sidebar />
+            <main className="ml-64 min-h-screen">
+              {children}
+            </main>
           </div>
         </QueryProvider>
       </body>
