@@ -18,22 +18,15 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // 登录API
 export const login = async (data: LoginRequest): Promise<LoginResponse> => {
-  await delay(500);
-  
-  const user = mockUsers.find(u => u.account === data.account && u.password === data.password);
-  
-  if (!user) {
-    throw new Error('用户名或密码错误');
-  }
-  
-  return {
-    token: `mock-token-${Date.now()}`,
-    user: user.user
-  };
+  const response = await fetcher('/system/login', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+  return response as LoginResponse;
 };
 
 // 获取运动员列表
-export const getPlayers = async (params:any): Promise<PlayerListResponse> => {
+export const getPlayers = async (params: PlayerQueryRequest): Promise<PlayerListResponse> => {
   const response: PlayerListResponse = await fetcher('/system/player', {
     method: 'POST',
     body: JSON.stringify(params)
@@ -49,15 +42,11 @@ export const getPlayers = async (params:any): Promise<PlayerListResponse> => {
 
 // 更新运动员信息
 export const updatePlayer = async (data: PlayerUpdateRequest): Promise<Player> => {
-  await delay(500);
-  
-  const index = mockPlayers.findIndex(p => p.id === data.id);
-  if (index === -1) {
-    throw new Error('运动员不存在');
-  }
-  
-  mockPlayers[index] = { ...data };
-  return mockPlayers[index];
+  const response = await fetcher('/system/player/update', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+  return response as Player;
 };
 
 // 查询运动员详情

@@ -90,12 +90,6 @@ export default function LoginPage() {
               {loginMutation.isPending ? '登录中...' : '登录'}
             </Button>
           </form>
-          
-          <div className="mt-4 text-center text-sm text-gray-600">
-            <p>测试账号：</p>
-            <p>用户名：admin 密码：123456</p>
-            <p>用户名：user 密码：123456</p>
-          </div>
         </CardContent>
       </Card>
     </div>
