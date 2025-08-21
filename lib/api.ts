@@ -6,7 +6,8 @@ import {
   PlayerQueryRequest,
   Competition,
   CompetitionListRequest,
-  CompetitionListResponse
+  CompetitionListResponse,
+  CompetitionUpdateRequest
 } from '@/types';
 import { fetcher } from './fetcher';
 import { mockPlayers, mockCompetitions, mockUsers } from './mock-data';
@@ -104,16 +105,13 @@ export const addCompetition = async (data: Omit<Competition, 'id'>): Promise<Com
 };
 
 // 更新比赛
-export const updateCompetition = async (data: Competition): Promise<Competition> => {
-  await delay(500);
+export const updateCompetition = async (data: CompetitionUpdateRequest): Promise<Competition> => {
+  const response = await fetcher('/system/update_comp_info', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+  return response as Competition;
   
-  const index = mockCompetitions.findIndex(c => c.id === data.id);
-  if (index === -1) {
-    throw new Error('比赛不存在');
-  }
-  
-  mockCompetitions[index] = { ...data };
-  return mockCompetitions[index];
 };
 
 // 删除比赛

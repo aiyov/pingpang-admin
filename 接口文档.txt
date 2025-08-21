@@ -99,3 +99,147 @@ Content-Type: application/json
 5:POST 登录 /user/login 
 private string account
 private string password
+
+POST 更新比赛信息 /system/update_comp_info
+private Long id;
+
+    /**
+     * 本方运动员id
+     */
+    private Long playerId;
+
+    /**
+     * 代表团队
+     */
+    private String representTeam;
+
+    /**
+     * 赛事体系(中文)
+     */
+    private String compSeriesCn;
+
+    /**
+     * 赛事规格(中文)
+     */
+    private String compSpecificationCn;
+
+    /**
+     * 赛事类型(成人赛事/青少年赛事)
+     */
+    private String compType;
+
+    /**
+     * 比赛名称(英文)
+     */
+    private String compNameEn;
+
+    /**
+     * 比赛名称(中文)
+     */
+    private String compNameCn;
+
+    /**
+     * 比赛地点(中文)
+     */
+    private String compLocationCn;
+
+    /**
+     * 比赛年份
+     */
+    private String compYear;
+
+    /**
+     * 比赛日期
+     */
+    private String compDate;
+
+    /**
+     * 比赛完整日期
+     */
+    private String compDatetime;
+
+    /**
+     * 对手运动员id
+     */
+    private String opponentPlayerId;
+
+    /**
+     * 对手协会
+     */
+    private String rivalAssociation;
+
+    /**
+     * 对手中文(译)名
+     */
+    private String rivalChineseName;
+
+    /**
+     * 对手英文(译)名
+     */
+    private String rivalEnglishName;
+
+    /**
+     * 对手打法(英文)
+     */
+    private String playStyleEn;
+
+    /**
+     * 对手打法(中文)
+     */
+    private String playStyleCn;
+
+    /**
+     * 己方搭档中文名
+     */
+    private String partnerChineseName;
+
+    /**
+     * 己方搭档英文名
+     */
+    private String partnerEnglishName;
+
+    /**
+     * 比赛项目(中文)
+     * 男单（单项）、男单（团体）、男双（单项）、男双（团体）、混双（单项）、混双（团体）
+     */
+    private String compEventsCn;
+
+    /**
+     * 比赛轮次(中文)
+     */
+    private String compRoundsCn;
+
+    /**
+     * 比分
+     */
+    private String compScore;
+
+    /**
+     * 局分
+     */
+    private String compPoints;
+
+    /**
+     * 己方胜负
+     */
+    private String matchResult;
+
+    /**
+     * 赛果
+     */
+    private String compResult;
+
+    /**
+     * 团体出场位次
+     */
+    private String teamPlace;
+
+    /**
+     * 团队成员
+     */
+    private String teamMember;
+
+    /**
+     * 场外指导
+     */
+    private String offsiteGuidance;

@@ -6,7 +6,8 @@ import {
   PlayerUpdateRequest, 
   PlayerQueryRequest,
   CompetitionListRequest,
-  Competition
+  Competition,
+  CompetitionUpdateRequest
 } from '@/types';
 
 // 登录
@@ -89,7 +90,19 @@ export const useAddCompetition = () => {
   });
 };
 
-// 更新比赛
+// 更新比赛信息（新接口）
+export const useUpdateCompetitionInfo = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (data: CompetitionUpdateRequest) => api.updateCompetition(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['competitions'] });
+    },
+  });
+};
+
+// 更新比赛（兼容旧接口）
 export const useUpdateCompetition = () => {
   const queryClient = useQueryClient();
   

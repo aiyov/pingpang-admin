@@ -6,6 +6,11 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
+  user: {
+    id: number;
+    username: string;
+    role: string;
+  };
 }
 
 // 运动员相关类型
@@ -39,29 +44,7 @@ export interface Competition {
   matchResult: string;
   compResult: string;
   compDatetime: string;
-  compPoints: string;
-  compScore: string;
-  compType: string;
-  compRoundsCn: string;
-  compLocationCn: string;
-  compSeriesCn: string;
-  compSpecificationCn: string;
-  offsiteGuidance: string;
-  partnerChineseName: string;
-  partnerEnglishName: string;
-  playStyleCn: string;
-  playStyleEn: string;
-  rivalAssociation: string;
-  rivalEnglishName: string;
 }
-
-export interface CompetitionListResponse {
-  records: Competition[];
-  total: number;
-  size: number;
-  current: number;
-}
-
 
 export interface CompetitionListRequest {
   compNameEn?: string;
@@ -70,7 +53,8 @@ export interface CompetitionListRequest {
   compEventsCn?: string;
   matchResult?: string;
   compResult?: string;
-  compDatetime?: string;
+  compDatetimeStart?: string;
+  compDatetimeEnd?: string;
   size: number;
   current: number;
 }
@@ -80,4 +64,37 @@ export interface CompetitionListResponse {
   total: number;
   size: number;
   current: number;
+}
+
+// 更新比赛信息接口类型
+export interface CompetitionUpdateRequest {
+  id: number;
+  playerId?: number;
+  representTeam?: string;
+  compSeriesCn?: string;
+  compSpecificationCn?: string;
+  compType?: string;
+  compNameEn?: string;
+  compNameCn?: string;
+  compLocationCn?: string;
+  compYear?: string;
+  compDate?: string;
+  compDatetime?: string;
+  opponentPlayerId?: string;
+  rivalAssociation?: string;
+  rivalChineseName?: string;
+  rivalEnglishName?: string;
+  playStyleEn?: string;
+  playStyleCn?: string;
+  partnerChineseName?: string;
+  partnerEnglishName?: string;
+  compEventsCn?: string;
+  compRoundsCn?: string;
+  compScore?: string;
+  compPoints?: string;
+  matchResult?: string;
+  compResult?: string;
+  teamPlace?: string;
+  teamMember?: string;
+  offsiteGuidance?: string;
 }

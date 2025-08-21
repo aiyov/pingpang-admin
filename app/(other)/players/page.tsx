@@ -7,9 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { usePlayers, useUpdatePlayer, useDeletePlayer } from '@/hooks/use-api';
+import { usePlayers, useUpdatePlayer } from '@/hooks/use-api';
 import { Player } from '@/types';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit } from 'lucide-react';
 
 export default function PlayersPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -29,7 +29,6 @@ export default function PlayersPage() {
 
   const { data: players = [], isLoading } = usePlayers();
   const updatePlayerMutation = useUpdatePlayer();
-  const deletePlayerMutation = useDeletePlayer();
 
 
   const handleEdit = (player: Player) => {
@@ -47,16 +46,6 @@ export default function PlayersPage() {
       birthDate: player.birthDate
     });
     setIsEditDialogOpen(true);
-  };
-
-  const handleDelete = async (id: number) => {
-    if (confirm('确定要删除这个运动员吗？')) {
-      try {
-        await deletePlayerMutation.mutateAsync(id);
-      } catch (error) {
-        alert('删除失败');
-      }
-    }
   };
 
   const handleSubmit = async () => {
@@ -121,13 +110,6 @@ export default function PlayersPage() {
                         onClick={() => handleEdit(player)}
                       >
                         <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(player.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </TableCell>
