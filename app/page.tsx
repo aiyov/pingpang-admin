@@ -1,103 +1,130 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { usePlayers, useCompetitions } from '@/hooks/use-api';
+import { Users, Trophy, TrendingUp, Calendar } from 'lucide-react';
+import Link from 'next/link';
+
+export default function HomePage() {
+  const [user, setUser] = useState<any>({});
+  const router = useRouter();
+  
+  const { data: players = [] } = usePlayers();
+  const { data: competitionsData } = useCompetitions({ size: 10, current: 1 });
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+  }, [router]);
+
+  const stats = [
+    {
+      title: '运动员总数',
+      value: players.length,
+      icon: Users,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-100'
+    },
+    {
+      title: '比赛总数',
+      value: competitionsData?.total || 0,
+      icon: Trophy,
+      color: 'text-green-600',
+      bgColor: 'bg-green-100'
+    },
+    {
+      title: '胜率',
+      value: competitionsData?.records ? 
+        `${Math.round((competitionsData.records.filter(c => c.matchResult === '胜').length / competitionsData.records.length) * 100)}%` : 
+        '0%',
+      icon: TrendingUp,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-100'
+    },
+    {
+      title: '本月比赛',
+      value: competitionsData?.records?.filter(c => {
+        const compDate = new Date(c.compDatetimeStart);
+        const now = new Date();
+        return compDate.getMonth() === now.getMonth() && compDate.getFullYear() === now.getFullYear();
+      }).length || 0,
+      icon: Calendar,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-100'
+    }
+  ];
+
+  if (!user) {
+    return <div className="flex justify-center items-center h-64">加载中...</div>;
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="container mx-auto py-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          欢迎回来！
+        </h1>
+        <p className="text-gray-600">
+          这里是乒乓球管理系统的控制台，您可以管理运动员和比赛信息。
+        </p>
+      </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      {/* 快速操作 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Users className="w-5 h-5 mr-2" />
+              运动员管理
+            </CardTitle>
+            <CardDescription>
+              管理运动员信息，包括基本信息、排名、积分等
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                当前共有 <span className="font-semibold">{players.length}</span> 名运动员
+              </p>
+              <Link href="/players">
+                <Button className="w-full">
+                  进入运动员管理
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Trophy className="w-5 h-5 mr-2" />
+              比赛管理
+            </CardTitle>
+            <CardDescription>
+              管理比赛信息，包括比赛结果、时间安排等
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                当前共有 <span className="font-semibold">{competitionsData?.total || 0}</span> 场比赛
+              </p>
+              <Link href="/competitions">
+                <Button className="w-full">
+                  进入比赛管理
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
