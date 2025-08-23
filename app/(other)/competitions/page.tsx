@@ -195,6 +195,11 @@ export default function CompetitionsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
+              {competitionsData?.records.length === 0 && !isLoading && (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center">暂无数据</TableCell>
+                </TableRow>
+              )}
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center">加载中...</TableCell>
