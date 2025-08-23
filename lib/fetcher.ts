@@ -9,6 +9,11 @@ export const fetcher = async <T>(url: string, options: RequestInit = {}) => {
     ...options,
   });
   const result = await response.json();
+  if (result.code === "401") {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+    return null;
+  }
   if (result.code !== "200") {
     throw new Error(result.msg);
   }
