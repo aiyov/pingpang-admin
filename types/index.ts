@@ -6,11 +6,6 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
-  user: {
-    id: number;
-    username: string;
-    role: string;
-  };
 }
 
 export interface PlayerListResponse {

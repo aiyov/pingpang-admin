@@ -26,10 +26,8 @@ export default function LoginPage() {
 
     try {
       const result = await loginMutation.mutateAsync({ account, password });
-      
       // 保存token到localStorage
-      localStorage.setItem('token', result.token);
-      localStorage.setItem('user', JSON.stringify(result.user));
+      localStorage.setItem('token', result);
       
       // 直接跳转到运动员管理页面
       router.push('/players');

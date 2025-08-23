@@ -17,8 +17,8 @@ import { mockPlayers, mockCompetitions, mockUsers } from './mock-data';
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // 登录API
-export const login = async (data: LoginRequest): Promise<LoginResponse> => {
-  const response = await fetcher('/system/login', {
+export const login = async (data: LoginRequest): Promise<string> => {
+  const response = await fetcher('/user/login', {
     method: 'POST',
     body: JSON.stringify(data)
   });
