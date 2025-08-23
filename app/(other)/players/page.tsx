@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePlayers, useUpdatePlayer } from '@/hooks/use-api';
 import { Player, PlayerQueryRequest } from '@/types';
-import { Edit, Search } from 'lucide-react';
+import { Edit, Eye, Search } from 'lucide-react';
 
 export default function PlayersPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -27,6 +27,7 @@ export default function PlayersPage() {
     birthDate: ''
   });
 
+  const [modalType, setModalType] = useState<'edit' | 'view'>('edit');
   const [currentPage, setCurrentPage] = useState(1);
   const [name, setName] = useState('')
   const [requestParams, setRequestParams] = useState<PlayerQueryRequest>({
@@ -67,6 +68,7 @@ export default function PlayersPage() {
 
   const handleEdit = (player: Player) => {
     setEditingPlayer(player);
+    setModalType('edit');
     setFormData({
       gender: player.gender,
       chineseName: player.chineseName,
@@ -80,6 +82,25 @@ export default function PlayersPage() {
       birthDate: player.birthDate
     });
     setIsEditDialogOpen(true);
+  };
+
+  const handleView = (player: Player) => {
+    setEditingPlayer(player);
+    setModalType('view');
+    setFormData({
+      gender: player.gender,
+      chineseName: player.chineseName,
+      englishName: player.englishName,
+      association: player.association,
+      ranking: player.ranking,
+      score: player.score,
+      playStyleCn: player.playStyleCn,
+      playStyleEn: player.playStyleEn,
+      age: player.age,
+      birthDate: player.birthDate
+    });
+    setIsEditDialogOpen(true);
+
   };
 
   const handleSubmit = async () => {
@@ -172,6 +193,13 @@ export default function PlayersPage() {
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={() => handleView(player)}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => handleEdit(player)}
                       >
                         <Edit className="w-4 h-4" />
@@ -211,31 +239,30 @@ export default function PlayersPage() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>编辑运动员</DialogTitle>
-            <DialogDescription>修改运动员信息</DialogDescription>
+            <DialogTitle>{modalType === 'edit' ? '编辑运动员' : '查看运动员'}</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium">中文名</label>
               <Input
+                disabled={modalType === 'view'}
                 value={formData.chineseName}
                 onChange={(e) => setFormData({ ...formData, chineseName: e.target.value })}
-                placeholder="请输入中文名"
               />
             </div>
             <div>
               <label className="text-sm font-medium">英文名</label>
               <Input
+                disabled={modalType === 'view'}
                 value={formData.englishName}
                 onChange={(e) => setFormData({ ...formData, englishName: e.target.value })}
-                placeholder="请输入英文名"
               />
             </div>
             <div>
               <label className="text-sm font-medium">性别</label>
-              <Select value={formData.gender} onValueChange={(value) => setFormData({ ...formData, gender: value })}>
+              <Select disabled={modalType === 'view'} value={formData.gender} onValueChange={(value) => setFormData({ ...formData, gender: value })}>
                 <SelectTrigger>
-                  <SelectValue placeholder="选择性别" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Male">男</SelectItem>
@@ -246,41 +273,42 @@ export default function PlayersPage() {
             <div>
               <label className="text-sm font-medium">所属协会</label>
               <Input
+                disabled={modalType === 'view'}
                 value={formData.association}
                 onChange={(e) => setFormData({ ...formData, association: e.target.value })}
-                placeholder="请输入所属协会"
               />
             </div>
             <div>
               <label className="text-sm font-medium">世界排名</label>
               <Input
+                disabled={modalType === 'view'}
                 type="number"
                 value={formData.ranking}
                 onChange={(e) => setFormData({ ...formData, ranking: parseInt(e.target.value) || 0 })}
-                placeholder="请输入世界排名"
               />
             </div>
             <div>
               <label className="text-sm font-medium">积分</label>
               <Input
+                disabled={modalType === 'view'}
                 type="number"
                 value={formData.score}
                 onChange={(e) => setFormData({ ...formData, score: parseInt(e.target.value) || 0 })}
-                placeholder="请输入积分"
               />
             </div>
             <div>
               <label className="text-sm font-medium">年龄</label>
               <Input
+                disabled={modalType === 'view'}
                 type="number"
                 value={formData.age}
                 onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) || 0 })}
-                placeholder="请输入年龄"
               />
             </div>
             <div>
               <label className="text-sm font-medium">生日</label>
               <Input
+                disabled={modalType === 'view'}
                 type="date"
                 value={formData.birthDate}
                 onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
@@ -289,17 +317,17 @@ export default function PlayersPage() {
             <div className="col-span-2">
               <label className="text-sm font-medium">打法(中文)</label>
               <Input
+                disabled={modalType === 'view'}
                 value={formData.playStyleCn}
                 onChange={(e) => setFormData({ ...formData, playStyleCn: e.target.value })}
-                placeholder="请输入打法(中文)"
               />
             </div>
             <div className="col-span-2">
               <label className="text-sm font-medium">打法(英文)</label>
               <Input
+                disabled={modalType === 'view'}
                 value={formData.playStyleEn}
                 onChange={(e) => setFormData({ ...formData, playStyleEn: e.target.value })}
-                placeholder="请输入打法(英文)"
               />
             </div>
           </div>
@@ -307,9 +335,11 @@ export default function PlayersPage() {
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
               取消
             </Button>
-            <Button onClick={handleSubmit} disabled={updatePlayerMutation.isPending}>
-              {updatePlayerMutation.isPending ? '更新中...' : '更新'}
-            </Button>
+            {modalType === 'edit' && (
+              <Button onClick={handleSubmit} disabled={updatePlayerMutation.isPending}>
+                {updatePlayerMutation.isPending ? '更新中...' : '更新'}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

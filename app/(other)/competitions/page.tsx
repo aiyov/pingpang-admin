@@ -9,11 +9,12 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCompetitions, useUpdateCompetitionInfo, useDeleteCompetition } from '@/hooks/use-api';
 import { Competition, CompetitionListRequest, CompetitionUpdateRequest } from '@/types';
-import { Edit, Search } from 'lucide-react';
+import { Edit, Eye, Search } from 'lucide-react';
 
 export default function CompetitionsPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingCompetition, setEditingCompetition] = useState<Competition | null>(null);
+  const [dialogType, setDialogType] = useState('edit');
   const [currentPage, setCurrentPage] = useState(1);
   const [requestParams, setRequestParams] = useState<CompetitionListRequest>({
     current: currentPage,
@@ -69,9 +70,17 @@ export default function CompetitionsPage() {
   const updateCompetitionMutation = useUpdateCompetitionInfo();
 
   const handleEdit = (competition: Competition) => {
+    setDialogType('edit');
     setEditingCompetition(competition);
     setFormData(competition);
     setIsEditDialogOpen(true);
+  };
+
+  const handleView = (competition: Competition) => {
+    setDialogType('view');
+    setEditingCompetition(competition);
+    setFormData(competition);
+    setIsEditDialogOpen(true); 
   };
 
   const handleSubmit = async () => {
@@ -229,6 +238,13 @@ export default function CompetitionsPage() {
                   <TableCell>{competition.compDatetime}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleView(competition)}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
@@ -272,8 +288,7 @@ export default function CompetitionsPage() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>编辑比赛</DialogTitle>
-            <DialogDescription>修改比赛信息</DialogDescription>
+            <DialogTitle>{dialogType === 'edit' ? '编辑比赛' : '查看比赛'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-6">
             {/* 基本信息 */}
@@ -283,31 +298,32 @@ export default function CompetitionsPage() {
                 <div>
                   <label className="text-sm font-medium">比赛名称(英文)</label>
                   <Input
+                    disabled={dialogType === 'view'}
                     value={formData.compNameEn}
                     onChange={(e) => setFormData({ ...formData, compNameEn: e.target.value })}
-                    placeholder="请输入比赛名称(英文)"
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium">比赛名称(中文)</label>
                   <Input
+                    disabled={dialogType === 'view'}
                     value={formData.compNameCn}
                     onChange={(e) => setFormData({ ...formData, compNameCn: e.target.value })}
-                    placeholder="请输入比赛名称(中文)"
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium">比赛地点(中文)</label>
                   <Input
+                    disabled={dialogType === 'view'}
                     value={formData.compLocationCn}
                     onChange={(e) => setFormData({ ...formData, compLocationCn: e.target.value })}
-                    placeholder="请输入比赛地点"
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium">比赛日期</label>
                   <Input
                     type="date"
+                    disabled={dialogType === 'view'}
                     value={formData.compDatetime}
                     onChange={(e) => setFormData({ ...formData, compDatetime: e.target.value })}
                   />
@@ -315,22 +331,22 @@ export default function CompetitionsPage() {
                 <div>
                   <label className="text-sm font-medium">赛事体系(中文)</label>
                   <Input
+                    disabled={dialogType === 'view'}
                     value={formData.compSeriesCn}
                     onChange={(e) => setFormData({ ...formData, compSeriesCn: e.target.value })}
-                    placeholder="如：世界锦标赛"
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium">赛事规格(中文)</label>
                   <Input
+                    disabled={dialogType === 'view'}
                     value={formData.compSpecificationCn}
                     onChange={(e) => setFormData({ ...formData, compSpecificationCn: e.target.value })}
-                    placeholder="如：国际级"
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium">赛事类型</label>
-                  <Select value={formData.compType} onValueChange={(value) => setFormData({ ...formData, compType: value })}>
+                  <Select disabled={dialogType === 'view'} value={formData.compType} onValueChange={(value) => setFormData({ ...formData, compType: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="选择赛事类型" />
                     </SelectTrigger>
@@ -343,9 +359,9 @@ export default function CompetitionsPage() {
                 <div>
                   <label className="text-sm font-medium">比赛轮次(中文)</label>
                   <Input
+                    disabled={dialogType === 'view'}
                     value={formData.compRoundsCn}
                     onChange={(e) => setFormData({ ...formData, compRoundsCn: e.target.value })}
-                    placeholder="如：决赛"
                   />
                 </div>
               </div>
@@ -358,41 +374,41 @@ export default function CompetitionsPage() {
                 <div>
                   <label className="text-sm font-medium">对手中文名</label>
                   <Input
+                    disabled={dialogType === 'view'}
                     value={formData.rivalChineseName}
                     onChange={(e) => setFormData({ ...formData, rivalChineseName: e.target.value })}
-                    placeholder="请输入对手中文名"
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium">对手英文名</label>
                   <Input
+                    disabled={dialogType === 'view'}
                     value={formData.rivalEnglishName}
                     onChange={(e) => setFormData({ ...formData, rivalEnglishName: e.target.value })}
-                    placeholder="请输入对手英文名"
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium">对手协会</label>
                   <Input
+                    disabled={dialogType === 'view'}
                     value={formData.rivalAssociation}
                     onChange={(e) => setFormData({ ...formData, rivalAssociation: e.target.value })}
-                    placeholder="请输入对手协会"
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium">对手打法(中文)</label>
                   <Input
+                    disabled={dialogType === 'view'}
                     value={formData.playStyleCn}
                     onChange={(e) => setFormData({ ...formData, playStyleCn: e.target.value })}
-                    placeholder="如：横拍快攻"
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium">对手打法(英文)</label>
                   <Input
+                    disabled={dialogType === 'view'}
                     value={formData.playStyleEn}
                     onChange={(e) => setFormData({ ...formData, playStyleEn: e.target.value })}
-                    placeholder="如：Shakehand Fast Attack"
                   />
                 </div>
               </div>
@@ -433,25 +449,25 @@ export default function CompetitionsPage() {
                 <div>
                   <label className="text-sm font-medium">赛果</label>
                   <Input
+                    disabled={dialogType === 'view'}
                     value={formData.compResult}
                     onChange={(e) => setFormData({ ...formData, compResult: e.target.value })}
-                    placeholder=""
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium">比分</label>
                   <Input
+                    disabled={dialogType === 'view'}
                     value={formData.compScore}
                     onChange={(e) => setFormData({ ...formData, compScore: e.target.value })}
-                    placeholder=""
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium">局分</label>
                   <Input
+                    disabled={dialogType === 'view'}
                     value={formData.compPoints}
                     onChange={(e) => setFormData({ ...formData, compPoints: e.target.value })}
-                    placeholder="如：11-9"
                   />
                 </div>
               </div>
@@ -464,49 +480,49 @@ export default function CompetitionsPage() {
                 <div>
                   <label className="text-sm font-medium">己方搭档(中文)</label>
                   <Input
+                    disabled={dialogType === 'view'}
                     value={formData.partnerChineseName}
                     onChange={(e) => setFormData({ ...formData, partnerChineseName: e.target.value })}
-                    placeholder="请输入搭档中文名"
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium">己方搭档(英文)</label>
                   <Input
+                    disabled={dialogType === 'view'}
                     value={formData.partnerEnglishName}
                     onChange={(e) => setFormData({ ...formData, partnerEnglishName: e.target.value })}
-                    placeholder="请输入搭档英文名"
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium">代表团队</label>
                   <Input
+                    disabled={dialogType === 'view'}
                     value={formData.representTeam}
                     onChange={(e) => setFormData({ ...formData, representTeam: e.target.value })}
-                    placeholder="请输入代表团队"
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium">团体出场位次</label>
                   <Input
+                    disabled={dialogType === 'view'}
                     value={formData.teamPlace}
                     onChange={(e) => setFormData({ ...formData, teamPlace: e.target.value })}
-                    placeholder="如：第一单打"
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium">团队成员</label>
                   <Input
+                    disabled={dialogType === 'view'}
                     value={formData.teamMember}
                     onChange={(e) => setFormData({ ...formData, teamMember: e.target.value })}
-                    placeholder="请输入团队成员"
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium">场外指导</label>
                   <Input
+                    disabled={dialogType === 'view'}
                     value={formData.offsiteGuidance}
                     onChange={(e) => setFormData({ ...formData, offsiteGuidance: e.target.value })}
-                    placeholder="请输入场外指导"
                   />
                 </div>
               </div>
@@ -516,9 +532,11 @@ export default function CompetitionsPage() {
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
               取消
             </Button>
-            <Button onClick={handleSubmit} disabled={updateCompetitionMutation.isPending}>
-              {updateCompetitionMutation.isPending ? '更新中...' : '更新'}
-            </Button>
+            {dialogType === 'edit' && ( 
+              <Button onClick={handleSubmit} disabled={updateCompetitionMutation.isPending}>
+                {updateCompetitionMutation.isPending ? '更新中...' : '更新'}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
