@@ -7,14 +7,17 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useCompetitions, useUpdateCompetitionInfo, useDeleteCompetition, useAddCompetition } from '@/hooks/use-api';
-import { Competition, CompetitionListRequest, CompetitionUpdateRequest, CompetitionAddRequest } from '@/types';
+import { useCompetitions, useUpdateCompetitionInfo, useDeleteCompetition, useAddCompetition, usePlayers } from '@/hooks/use-api';
+import { Competition, CompetitionListRequest, CompetitionUpdateRequest, CompetitionAddRequest, Player } from '@/types';
 import { Edit, Eye, Search, Plus, Trash2 } from 'lucide-react';
+import { MultiSelect, MultiSelectOption } from '@/components/ui/multi-select';
 
 export default function CompetitionsPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingCompetition, setEditingCompetition] = useState<Competition | null>(null);
   const [dialogType, setDialogType] = useState<'add' | 'edit' | 'view'>('edit');
+  const [selectedOpponents, setSelectedOpponents] = useState<MultiSelectOption[]>([]);
+  const [playerSearchQuery, setPlayerSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [requestParams, setRequestParams] = useState<CompetitionListRequest>({
     current: currentPage,
@@ -70,11 +73,54 @@ export default function CompetitionsPage() {
   const updateCompetitionMutation = useUpdateCompetitionInfo();
   const addCompetitionMutation = useAddCompetition();
   const deleteCompetitionMutation = useDeleteCompetition();
+  
+  // 获取运动员列表用于对手选择
+  const { data: playersData, isLoading: playersLoading } = usePlayers({
+    current: 1,
+    size: 50,
+    name: playerSearchQuery
+  });
 
   const handleEdit = (competition: Competition) => {
     setDialogType('edit');
     setEditingCompetition(competition);
     setFormData(competition);
+    
+    // 解析对手信息
+    if (competition.rivalChineseName) {
+      const opponentNames = competition.rivalChineseName.split('/');
+      const opponentIds = competition.opponentPlayerId ? competition.opponentPlayerId.split('/') : [];
+      
+      const opponents: MultiSelectOption[] = opponentNames.map((name, index) => {
+        const playerId = opponentIds[index] ? parseInt(opponentIds[index]) : null;
+        
+        // 优先使用 opponentPlayerId 匹配，如果没有则通过姓名匹配
+        const matchedPlayer = playerId 
+          ? playersData?.records.find(player => player.id === playerId)
+          : playersData?.records.find(player => player.chineseName === name.trim());
+        
+        return {
+          id: matchedPlayer?.id || (index + 1000), // 如果匹配不到，使用临时ID
+          value: name.trim(),
+          label: matchedPlayer ? `${matchedPlayer.chineseName} (${matchedPlayer.englishName})` : name.trim()
+        };
+      });
+      setSelectedOpponents(opponents);
+      
+      // 同时设置表单数据中的对手信息字段
+      if (competition.rivalEnglishName || competition.rivalAssociation || competition.playStyleCn || competition.playStyleEn || competition.partnerEnglishName) {
+        setFormData(prev => ({
+          ...prev,
+          rivalEnglishName: competition.partnerEnglishName || competition.rivalEnglishName || '',
+          rivalAssociation: competition.rivalAssociation || '',
+          playStyleCn: competition.playStyleCn || '',
+          playStyleEn: competition.playStyleEn || ''
+        }));
+      }
+    } else {
+      setSelectedOpponents([]);
+    }
+    
     setIsEditDialogOpen(true);
   };
 
@@ -82,15 +128,52 @@ export default function CompetitionsPage() {
     setDialogType('view');
     setEditingCompetition(competition);
     setFormData(competition);
+    
+    // 解析对手信息
+    if (competition.rivalChineseName) {
+      const opponentNames = competition.rivalChineseName.split('/');
+      const opponentIds = competition.opponentPlayerId ? competition.opponentPlayerId.split('/') : [];
+      
+      const opponents: MultiSelectOption[] = opponentNames.map((name, index) => {
+        const playerId = opponentIds[index] ? parseInt(opponentIds[index]) : null;
+        
+        // 优先使用 opponentPlayerId 匹配，如果没有则通过姓名匹配
+        const matchedPlayer = playerId 
+          ? playersData?.records.find(player => player.id === playerId)
+          : playersData?.records.find(player => player.chineseName === name.trim());
+        
+        return {
+          id: matchedPlayer?.id || (index + 1000),
+          value: name.trim(),
+          label: matchedPlayer ? `${matchedPlayer.chineseName} (${matchedPlayer.englishName})` : name.trim()
+        };
+      });
+      setSelectedOpponents(opponents);
+      
+      // 同时设置表单数据中的对手信息字段
+      if (competition.rivalEnglishName || competition.rivalAssociation || competition.playStyleCn || competition.playStyleEn || competition.partnerEnglishName) {
+        setFormData(prev => ({
+          ...prev,
+          rivalEnglishName: competition.partnerEnglishName || competition.rivalEnglishName || '',
+          rivalAssociation: competition.rivalAssociation || '',
+          playStyleCn: competition.playStyleCn || '',
+          playStyleEn: competition.playStyleEn || ''
+        }));
+      }
+    } else {
+      setSelectedOpponents([]);
+    }
+    
     setIsEditDialogOpen(true); 
   };
 
   const handleAdd = () => {
     setDialogType('add');
     setEditingCompetition(null);
+    setSelectedOpponents([]);
     setFormData({
       id: 0,
-      playerId: 0,
+      playerId: "28",
       representTeam: '',
       compSeriesCn: '',
       compSpecificationCn: '',
@@ -132,13 +215,92 @@ export default function CompetitionsPage() {
     }
   };
 
+  const handleOpponentChange = (selected: MultiSelectOption[]) => {
+    const previousSelected = selectedOpponents;
+    setSelectedOpponents(selected);
+    // 只在新增模式下自动填充，编辑模式下保持用户已输入的信息
+    if (dialogType === 'add') {
+      // 新增模式：自动填充对手信息
+      if (selected.length > 0) {
+        const matchedPlayers = selected.map(opponent => 
+          playersData?.records.find(player => player.id === opponent.id)
+        ).filter(Boolean);
+        
+        if (matchedPlayers.length > 0) {
+          setFormData(prev => ({
+            ...prev,
+            rivalChineseName: matchedPlayers.map(player => player!.chineseName).join('/'),
+            rivalEnglishName: matchedPlayers.map(player => player!.englishName).join('/'),
+            rivalAssociation: matchedPlayers.map(player => player!.association).join('/'),
+            playStyleCn: matchedPlayers.map(player => player!.playStyleCn).join('/'),
+            playStyleEn: matchedPlayers.map(player => player!.playStyleEn).join('/')
+          }));
+        }
+      } else {
+        // 清空对手信息
+        setFormData(prev => ({
+          ...prev,
+          rivalChineseName: '',
+          rivalEnglishName: '',
+          rivalAssociation: '',
+          playStyleCn: '',
+          playStyleEn: ''
+        }));
+      }
+    } else {
+      // 编辑模式：智能填充对手信息
+      if (selected.length > 0) {
+        const matchedPlayers = selected.map(opponent => 
+          playersData?.records.find(player => player.id === opponent.id)
+        ).filter(Boolean);
+        
+        if (matchedPlayers.length > 0) {
+          setFormData(prev => {
+            // 确保所有选中的对手都被正确处理
+            const allPlayerNames = matchedPlayers.map(player => player!.chineseName);
+            const allEnglishNames = matchedPlayers.map(player => player!.englishName);
+            const allAssociations = matchedPlayers.map(player => player!.association);
+            const allPlayStylesCn = matchedPlayers.map(player => player!.playStyleCn);
+            const allPlayStylesEn = matchedPlayers.map(player => player!.playStyleEn);
+            
+            return {
+              ...prev,
+              rivalChineseName: allPlayerNames.join('/'),
+              // 每个字段独立判断：如果为空则自动填充，否则保持用户已输入的内容
+              rivalEnglishName: allEnglishNames.join('/'),
+              rivalAssociation: allAssociations.join('/'),
+              playStyleCn: allPlayStylesCn.join('/'),
+              playStyleEn: allPlayStylesEn.join('/')
+            };
+          });
+        }
+      } else {
+        // 清空对手信息
+        setFormData(prev => ({
+          ...prev,
+          rivalChineseName: '',
+          rivalEnglishName: '',
+          rivalAssociation: '',
+          playStyleCn: '',
+          playStyleEn: ''
+        }));
+      }
+    }
+  };
+
   const handleSubmit = async () => {
     try {
+      // 将选中的对手ID合并到表单数据中
+      const submitData = {
+        ...formData,
+        opponentPlayerId: selectedOpponents.map(opponent => opponent.id).join('/')
+      };
+
       if (dialogType === 'add') {
-        await addCompetitionMutation.mutateAsync(formData as CompetitionAddRequest);
+        await addCompetitionMutation.mutateAsync(submitData as CompetitionAddRequest);
         setIsEditDialogOpen(false);
       } else if (editingCompetition) {
-        await updateCompetitionMutation.mutateAsync(formData);
+        await updateCompetitionMutation.mutateAsync(submitData);
         setIsEditDialogOpen(false);
       }
     } catch (error) {
@@ -436,12 +598,30 @@ export default function CompetitionsPage() {
             <div>
               <h4 className="text-sm font-medium mb-3 text-gray-700">对手信息</h4>
               <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <label className="text-sm font-medium">选择对手</label>
+                  <MultiSelect
+                    options={playersData?.records.map(player => ({
+                      id: player.id,
+                      value: player.chineseName,
+                      label: `${player.chineseName} (${player.englishName})`
+                    })) || []}
+                    selected={selectedOpponents}
+                    onChange={handleOpponentChange}
+                    placeholder="选择对手运动员"
+                    disabled={dialogType === 'view'}
+                    loading={playersLoading}
+                    onSearch={setPlayerSearchQuery}
+                    searchPlaceholder="搜索运动员..."
+                  />
+                </div>
                 <div>
                   <label className="text-sm font-medium">对手中文名</label>
                   <Input
                     disabled={dialogType === 'view'}
                     value={formData.rivalChineseName}
                     onChange={(e) => setFormData({ ...formData, rivalChineseName: e.target.value })}
+                    placeholder="自动填充或手动输入"
                   />
                 </div>
                 <div>
@@ -450,6 +630,7 @@ export default function CompetitionsPage() {
                     disabled={dialogType === 'view'}
                     value={formData.rivalEnglishName}
                     onChange={(e) => setFormData({ ...formData, rivalEnglishName: e.target.value })}
+                    placeholder="自动填充或手动输入"
                   />
                 </div>
                 <div>
@@ -458,6 +639,7 @@ export default function CompetitionsPage() {
                     disabled={dialogType === 'view'}
                     value={formData.rivalAssociation}
                     onChange={(e) => setFormData({ ...formData, rivalAssociation: e.target.value })}
+                    placeholder="自动填充或手动输入"
                   />
                 </div>
                 <div>
@@ -466,6 +648,7 @@ export default function CompetitionsPage() {
                     disabled={dialogType === 'view'}
                     value={formData.playStyleCn}
                     onChange={(e) => setFormData({ ...formData, playStyleCn: e.target.value })}
+                    placeholder="自动填充或手动输入"
                   />
                 </div>
                 <div>
@@ -474,6 +657,7 @@ export default function CompetitionsPage() {
                     disabled={dialogType === 'view'}
                     value={formData.playStyleEn}
                     onChange={(e) => setFormData({ ...formData, playStyleEn: e.target.value })}
+                    placeholder="自动填充或手动输入"
                   />
                 </div>
               </div>

@@ -57,6 +57,12 @@ export interface Competition {
   compNameEn: string;
   compNameCn: string;
   rivalChineseName: string;
+  rivalEnglishName?: string;
+  rivalAssociation?: string;
+  playStyleCn?: string;
+  playStyleEn?: string;
+  partnerEnglishName?: string;
+  opponentPlayerId?: string;
   compEventsCn: string;
   matchResult: string;
   compResult: string;
@@ -86,7 +92,7 @@ export interface CompetitionListResponse {
 // 更新比赛信息接口类型
 export interface CompetitionUpdateRequest {
   id: number;
-  playerId?: number;
+  playerId?: string;
   representTeam?: string;
   compSeriesCn?: string;
   compSpecificationCn?: string;
@@ -118,7 +124,7 @@ export interface CompetitionUpdateRequest {
 
 // 新增比赛信息接口类型
 export interface CompetitionAddRequest {
-  playerId: number;
+  playerId: string;
   representTeam?: string;
   compSeriesCn?: string;
   compSpecificationCn?: string;
