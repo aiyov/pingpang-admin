@@ -3,11 +3,13 @@ import {
   LoginResponse, 
   Player, 
   PlayerUpdateRequest, 
+  PlayerAddRequest,
   PlayerQueryRequest,
   Competition,
   CompetitionListRequest,
   CompetitionListResponse,
   CompetitionUpdateRequest,
+  CompetitionAddRequest,
   PlayerListResponse
 } from '@/types';
 import { fetcher } from './fetcher';
@@ -17,7 +19,7 @@ import { mockPlayers, mockCompetitions, mockUsers } from './mock-data';
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // 登录API
-export const login = async (data: LoginRequest): Promise<string> => {
+export const login = async (data: LoginRequest): Promise<LoginResponse> => {
   const response = await fetcher('/user/login', {
     method: 'POST',
     body: JSON.stringify(data)
@@ -27,10 +29,10 @@ export const login = async (data: LoginRequest): Promise<string> => {
 
 // 获取运动员列表
 export const getPlayers = async (params: PlayerQueryRequest): Promise<PlayerListResponse> => {
-  const response: PlayerListResponse = await fetcher('/system/player', {
+  const response = await fetcher('/system/player', {
     method: 'POST',
     body: JSON.stringify(params)
-  });
+  }) as PlayerListResponse;
   const total = response.total;
   return {
     records: response.records,
@@ -59,35 +61,28 @@ export const getPlayerDetail = async (data: PlayerQueryRequest): Promise<Player 
 
 // 删除运动员
 export const deletePlayer = async (id: number): Promise<void> => {
-  await delay(300);
+  const response = await fetcher('/system/player/delete?id=' + id, {
+    method: 'POST'
+  });
   
-  const index = mockPlayers.findIndex(p => p.id === id);
-  if (index === -1) {
-    throw new Error('运动员不存在');
-  }
-  
-  mockPlayers.splice(index, 1);
+  return response as void;
 };
 
 // 添加运动员
-export const addPlayer = async (data: Omit<Player, 'id'>): Promise<Player> => {
-  await delay(500);
-  
-  const newPlayer: Player = {
-    ...data,
-    id: Math.max(...mockPlayers.map(p => p.id)) + 1
-  };
-  
-  mockPlayers.push(newPlayer);
-  return newPlayer;
+export const addPlayer = async (data: PlayerAddRequest): Promise<Player> => {
+  const response = await fetcher('/system/player/add', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+  return response as Player;
 };
 
 // 获取比赛列表
 export const getCompetitions = async (params: CompetitionListRequest): Promise<CompetitionListResponse> => {
-  const response: CompetitionListResponse = await fetcher('/system/comp_info', {
+  const response = await fetcher('/system/comp_info', {
     method: 'POST',
     body: JSON.stringify(params)
-  });
+  }) as CompetitionListResponse;
   const total = response.total;
   
   return {
@@ -99,19 +94,15 @@ export const getCompetitions = async (params: CompetitionListRequest): Promise<C
 };
 
 // 添加比赛
-export const addCompetition = async (data: Omit<Competition, 'id'>): Promise<Competition> => {
-  await delay(500);
-  
-  const newCompetition: Competition = {
-    ...data,
-    id: Math.max(...mockCompetitions.map(c => c.id)) + 1
-  };
-  
-  mockCompetitions.push(newCompetition);
-  return newCompetition;
+export const addCompetition = async (data: CompetitionAddRequest): Promise<Competition> => {
+  const response = await fetcher('/system/add/comp_info', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+  return response as Competition;
 };
 
-// 更新比赛
+// 更新比赛信息
 export const updateCompetition = async (data: CompetitionUpdateRequest): Promise<Competition> => {
   const response = await fetcher('/system/update_comp_info', {
     method: 'POST',
@@ -123,12 +114,8 @@ export const updateCompetition = async (data: CompetitionUpdateRequest): Promise
 
 // 删除比赛
 export const deleteCompetition = async (id: number): Promise<void> => {
-  await delay(300);
-  
-  const index = mockCompetitions.findIndex(c => c.id === id);
-  if (index === -1) {
-    throw new Error('比赛不存在');
-  }
-  
-  mockCompetitions.splice(index, 1);
+  const response = await fetcher('/system/comp_info/delete?id=' + id, {
+    method: 'POST'
+  });
+  return response as void;
 };

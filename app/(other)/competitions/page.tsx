@@ -7,14 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useCompetitions, useUpdateCompetitionInfo, useDeleteCompetition } from '@/hooks/use-api';
-import { Competition, CompetitionListRequest, CompetitionUpdateRequest } from '@/types';
-import { Edit, Eye, Search } from 'lucide-react';
+import { useCompetitions, useUpdateCompetitionInfo, useDeleteCompetition, useAddCompetition } from '@/hooks/use-api';
+import { Competition, CompetitionListRequest, CompetitionUpdateRequest, CompetitionAddRequest } from '@/types';
+import { Edit, Eye, Search, Plus, Trash2 } from 'lucide-react';
 
 export default function CompetitionsPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingCompetition, setEditingCompetition] = useState<Competition | null>(null);
-  const [dialogType, setDialogType] = useState('edit');
+  const [dialogType, setDialogType] = useState<'add' | 'edit' | 'view'>('edit');
   const [currentPage, setCurrentPage] = useState(1);
   const [requestParams, setRequestParams] = useState<CompetitionListRequest>({
     current: currentPage,
@@ -68,6 +68,8 @@ export default function CompetitionsPage() {
 
   const { data: competitionsData, isLoading } = useCompetitions(requestParams);
   const updateCompetitionMutation = useUpdateCompetitionInfo();
+  const addCompetitionMutation = useAddCompetition();
+  const deleteCompetitionMutation = useDeleteCompetition();
 
   const handleEdit = (competition: Competition) => {
     setDialogType('edit');
@@ -83,9 +85,59 @@ export default function CompetitionsPage() {
     setIsEditDialogOpen(true); 
   };
 
+  const handleAdd = () => {
+    setDialogType('add');
+    setEditingCompetition(null);
+    setFormData({
+      id: 0,
+      playerId: 0,
+      representTeam: '',
+      compSeriesCn: '',
+      compSpecificationCn: '',
+      compType: '',
+      compNameEn: '',
+      compNameCn: '',
+      compLocationCn: '',
+      compYear: '',
+      compDate: '',
+      compDatetime: '',
+      opponentPlayerId: '',
+      rivalAssociation: '',
+      rivalChineseName: '',
+      rivalEnglishName: '',
+      playStyleEn: '',
+      playStyleCn: '',
+      partnerChineseName: '',
+      partnerEnglishName: '',
+      compEventsCn: '',
+      compRoundsCn: '',
+      compScore: '',
+      compPoints: '',
+      matchResult: '',
+      compResult: '',
+      teamPlace: '',
+      teamMember: '',
+      offsiteGuidance: ''
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDelete = async (competition: Competition) => {
+    if (confirm(`确定要删除比赛 ${competition.compNameCn} 吗？`)) {
+      try {
+        await deleteCompetitionMutation.mutateAsync(competition.id);
+      } catch (error) {
+        alert('删除失败');
+      }
+    }
+  };
+
   const handleSubmit = async () => {
     try {
-      if (editingCompetition) {
+      if (dialogType === 'add') {
+        await addCompetitionMutation.mutateAsync(formData as CompetitionAddRequest);
+        setIsEditDialogOpen(false);
+      } else if (editingCompetition) {
         await updateCompetitionMutation.mutateAsync(formData);
         setIsEditDialogOpen(false);
       }
@@ -135,7 +187,10 @@ export default function CompetitionsPage() {
               <CardTitle>比赛管理</CardTitle>
               <CardDescription>管理乒乓球比赛信息</CardDescription>
             </div>
-            
+            <Button onClick={handleAdd}>
+              <Plus className="w-4 h-4 mr-2" />
+              新增比赛
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -238,7 +293,7 @@ export default function CompetitionsPage() {
                   <TableCell>{competition.compDatetime}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
-                    <Button
+                      <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleView(competition)}
@@ -251,6 +306,14 @@ export default function CompetitionsPage() {
                         onClick={() => handleEdit(competition)}
                       >
                         <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDelete(competition)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </TableCell>
@@ -288,7 +351,9 @@ export default function CompetitionsPage() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{dialogType === 'edit' ? '编辑比赛' : '查看比赛'}</DialogTitle>
+            <DialogTitle>
+              {dialogType === 'add' ? '新增比赛' : dialogType === 'edit' ? '编辑比赛' : '查看比赛'}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-6">
             {/* 基本信息 */}
@@ -532,9 +597,15 @@ export default function CompetitionsPage() {
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
               取消
             </Button>
-            {dialogType === 'edit' && ( 
-              <Button onClick={handleSubmit} disabled={updateCompetitionMutation.isPending}>
-                {updateCompetitionMutation.isPending ? '更新中...' : '更新'}
+            {dialogType !== 'view' && (
+              <Button 
+                onClick={handleSubmit} 
+                disabled={updateCompetitionMutation.isPending || addCompetitionMutation.isPending}
+              >
+                {dialogType === 'add' 
+                  ? (addCompetitionMutation.isPending ? '添加中...' : '添加')
+                  : (updateCompetitionMutation.isPending ? '更新中...' : '更新')
+                }
               </Button>
             )}
           </DialogFooter>

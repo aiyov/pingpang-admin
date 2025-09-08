@@ -4,10 +4,12 @@ import {
   LoginRequest, 
   Player,
   PlayerUpdateRequest, 
+  PlayerAddRequest,
   PlayerQueryRequest,
   CompetitionListRequest,
   Competition,
-  CompetitionUpdateRequest
+  CompetitionUpdateRequest,
+  CompetitionAddRequest
 } from '@/types';
 
 // 登录
@@ -63,7 +65,7 @@ export const useAddPlayer = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (data: Omit<Player, 'id'>) => api.addPlayer(data),
+    mutationFn: (data: PlayerAddRequest) => api.addPlayer(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['players'] });
     },
@@ -83,7 +85,7 @@ export const useAddCompetition = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (data: Omit<Competition, 'id'>) => api.addCompetition(data),
+    mutationFn: (data: CompetitionAddRequest) => api.addCompetition(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['competitions'] });
     },

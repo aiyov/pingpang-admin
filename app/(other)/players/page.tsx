@@ -7,9 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { usePlayers, useUpdatePlayer } from '@/hooks/use-api';
-import { Player, PlayerQueryRequest } from '@/types';
-import { Edit, Eye, Search } from 'lucide-react';
+import { usePlayers, useUpdatePlayer, useAddPlayer, useDeletePlayer } from '@/hooks/use-api';
+import { Player, PlayerQueryRequest, PlayerAddRequest } from '@/types';
+import { Edit, Eye, Search, Plus, Trash2 } from 'lucide-react';
 
 export default function PlayersPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -27,7 +27,7 @@ export default function PlayersPage() {
     birthDate: ''
   });
 
-  const [modalType, setModalType] = useState<'edit' | 'view'>('edit');
+  const [modalType, setModalType] = useState<'add' | 'edit' | 'view'>('edit');
   const [currentPage, setCurrentPage] = useState(1);
   const [name, setName] = useState('')
   const [requestParams, setRequestParams] = useState<PlayerQueryRequest>({
@@ -56,6 +56,8 @@ export default function PlayersPage() {
   const { data: playerData, isLoading } = usePlayers(requestParams);
   const players = playerData?.records || [];
   const updatePlayerMutation = useUpdatePlayer();
+  const addPlayerMutation = useAddPlayer();
+  const deletePlayerMutation = useDeletePlayer();
   
   const handleSearch = () => {
     setCurrentPage(1);
@@ -100,12 +102,42 @@ export default function PlayersPage() {
       birthDate: player.birthDate
     });
     setIsEditDialogOpen(true);
+  };
 
+  const handleAdd = () => {
+    setEditingPlayer(null);
+    setModalType('add');
+    setFormData({
+      gender: '',
+      chineseName: '',
+      englishName: '',
+      association: '',
+      ranking: 0,
+      score: 0,
+      playStyleCn: '',
+      playStyleEn: '',
+      age: 0,
+      birthDate: ''
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDelete = async (player: Player) => {
+    if (confirm(`确定要删除运动员 ${player.chineseName} 吗？`)) {
+      try {
+        await deletePlayerMutation.mutateAsync(player.id);
+      } catch (error) {
+        alert('删除失败');
+      }
+    }
   };
 
   const handleSubmit = async () => {
     try {
-      if (editingPlayer) {
+      if (modalType === 'add') {
+        await addPlayerMutation.mutateAsync(formData as PlayerAddRequest);
+        setIsEditDialogOpen(false);
+      } else if (editingPlayer) {
         await updatePlayerMutation.mutateAsync({
           ...formData,
           id: editingPlayer.id
@@ -129,7 +161,10 @@ export default function PlayersPage() {
               <CardTitle>运动员管理</CardTitle>
               <CardDescription>管理乒乓球运动员信息</CardDescription>
             </div>
-            
+            <Button onClick={handleAdd}>
+              <Plus className="w-4 h-4 mr-2" />
+              新增运动员
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -204,6 +239,14 @@ export default function PlayersPage() {
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDelete(player)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -239,7 +282,9 @@ export default function PlayersPage() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{modalType === 'edit' ? '编辑运动员' : '查看运动员'}</DialogTitle>
+            <DialogTitle>
+              {modalType === 'add' ? '新增运动员' : modalType === 'edit' ? '编辑运动员' : '查看运动员'}
+            </DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -335,9 +380,15 @@ export default function PlayersPage() {
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
               取消
             </Button>
-            {modalType === 'edit' && (
-              <Button onClick={handleSubmit} disabled={updatePlayerMutation.isPending}>
-                {updatePlayerMutation.isPending ? '更新中...' : '更新'}
+            {modalType !== 'view' && (
+              <Button 
+                onClick={handleSubmit} 
+                disabled={updatePlayerMutation.isPending || addPlayerMutation.isPending}
+              >
+                {modalType === 'add' 
+                  ? (addPlayerMutation.isPending ? '添加中...' : '添加')
+                  : (updatePlayerMutation.isPending ? '更新中...' : '更新')
+                }
               </Button>
             )}
           </DialogFooter>

@@ -243,3 +243,200 @@ private Long id;
      * 场外指导
      */
     private String offsiteGuidance;
+
+
+
+POST 删除比赛 /system/delete/comp_info？id =xxx
+POST 删除运动员 /system/player/delete？id=xxx
+
+POST 增加运动员  /system/player/add
+ /**
+     * 性别
+     */
+    private String gender;
+
+    /**
+     * 中文名
+     */
+    private String chineseName;
+
+    /**
+     * 英文名
+     */
+    private String englishName;
+
+    /**
+     * 所属协会
+     */
+    private String association;
+
+    /**
+     * 世界排名
+     */
+    private Integer ranking;
+
+    /**
+     * 积分
+     */
+    private Integer score;
+    /**
+     * 打法(中文)
+     */
+    private String playStyleCn;
+
+    /**
+     * 打法(英文)
+     */
+    private String playStyleEn;
+
+    /**
+     * 年龄
+     */
+    private Integer age;
+
+    /**
+     * 生日
+     */
+    private String birthDate;
+
+POST 增加比赛  /system/add/comp_info
+ /**
+     * 本方运动员id
+     */
+    private Long playerId;
+
+    /**
+     * 代表团队
+     */
+    private String representTeam;
+
+    /**
+     * 赛事体系(中文)
+     */
+    private String compSeriesCn;
+
+    /**
+     * 赛事规格(中文)
+     */
+    private String compSpecificationCn;
+
+    /**
+     * 赛事类型(成人赛事/青少年赛事)
+     */
+    private String compType;
+
+    /**
+     * 比赛名称(英文)
+     */
+    private String compNameEn;
+
+    /**
+     * 比赛名称(中文)
+     */
+    private String compNameCn;
+
+    /**
+     * 比赛地点(中文)
+     */
+    private String compLocationCn;
+
+    /**
+     * 比赛年份
+     */
+    private String compYear;
+
+    /**
+     * 比赛日期
+     */
+    private String compDate;
+
+    /**
+     * 比赛完整日期
+     */
+    private String compDatetime;
+
+    /**
+     * 对手运动员id
+     */
+    private String opponentPlayerId;
+
+    /**
+     * 对手协会
+     */
+    private String rivalAssociation;
+
+    /**
+     * 对手中文(译)名
+     */
+    private String rivalChineseName;
+
+    /**
+     * 对手英文(译)名
+     */
+    private String rivalEnglishName;
+
+    /**
+     * 对手打法(英文)
+     */
+    private String playStyleEn;
+
+    /**
+     * 对手打法(中文)
+     */
+    private String playStyleCn;
+
+    /**
+     * 己方搭档中文名
+     */
+    private String partnerChineseName;
+
+    /**
+     * 己方搭档英文名
+     */
+    private String partnerEnglishName;
+
+    /**
+     * 比赛项目(中文)
+     * 男单（单项）、男单（团体）、男双（单项）、男双（团体）、混双（单项）、混双（团体）
+     */
+    private String compEventsCn;
+
+    /**
+     * 比赛轮次(中文)
+     */
+    private String compRoundsCn;
+
+    /**
+     * 比分
+     */
+    private String compScore;
+
+    /**
+     * 局分
+     */
+    private String compPoints;
+
+    /**
+     * 己方胜负
+     */
+    private String matchResult;
+
+    /**
+     * 赛果
+     */
+    private String compResult;
+
+    /**
+     * 团体出场位次
+     */
+    private String teamPlace;
+
+    /**
+     * 团队成员
+     */
+    private String teamMember;
+
+    /**
+     * 场外指导
+     */
+    private String offsiteGuidance;
