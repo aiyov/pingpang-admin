@@ -77,7 +77,7 @@ export default function CompetitionsPage() {
   // 获取运动员列表用于对手选择
   const { data: playersData, isLoading: playersLoading } = usePlayers({
     current: 1,
-    size: 50,
+    size: 500000,
     name: playerSearchQuery
   });
 
@@ -87,34 +87,29 @@ export default function CompetitionsPage() {
     setFormData(competition);
     
     // 解析对手信息
-    if (competition.rivalChineseName) {
-      const opponentNames = competition.rivalChineseName.split('/');
+    if (competition.opponentPlayerId) {
       const opponentIds = competition.opponentPlayerId ? competition.opponentPlayerId.split('/') : [];
       
-      const opponents: MultiSelectOption[] = opponentNames.map((name, index) => {
-        const playerId = opponentIds[index] ? parseInt(opponentIds[index]) : null;
+      const opponents: MultiSelectOption[] = opponentIds.map((playerId, index) => {
         
         // 优先使用 opponentPlayerId 匹配，如果没有则通过姓名匹配
-        const matchedPlayer = playerId 
-          ? playersData?.records.find(player => player.id === playerId)
-          : playersData?.records.find(player => player.chineseName === name.trim());
+        const matchedPlayer = playersData?.records.find(player => Number(playerId) === Number(player.id))
         
         return {
-          id: matchedPlayer?.id || (index + 1000), // 如果匹配不到，使用临时ID
-          value: name.trim(),
+          id: matchedPlayer!.id, // 如果匹配不到，使用临时ID
+          value: matchedPlayer!.chineseName,
           label: matchedPlayer ? `${matchedPlayer.chineseName} (${matchedPlayer.englishName})` : name.trim()
         };
       });
       setSelectedOpponents(opponents);
-      
       // 同时设置表单数据中的对手信息字段
       if (competition.rivalEnglishName || competition.rivalAssociation || competition.playStyleCn || competition.playStyleEn || competition.partnerEnglishName) {
         setFormData(prev => ({
           ...prev,
-          rivalEnglishName: competition.partnerEnglishName || competition.rivalEnglishName || '',
-          rivalAssociation: competition.rivalAssociation || '',
-          playStyleCn: competition.playStyleCn || '',
-          playStyleEn: competition.playStyleEn || ''
+          rivalEnglishName: competition.rivalEnglishName,
+          rivalAssociation: competition.rivalAssociation,
+          playStyleCn: competition.playStyleCn,
+          playStyleEn: competition.playStyleEn
         }));
       }
     } else {
@@ -552,7 +547,10 @@ export default function CompetitionsPage() {
                     type="date"
                     disabled={dialogType === 'view'}
                     value={formData.compDatetime}
-                    onChange={(e) => setFormData({ ...formData, compDatetime: e.target.value })}
+                    onChange={(e) => {
+                      const date = e.target.value
+                      setFormData({ ...formData, compDatetime: date, compDate: date.split('-').slice(1, 3).join('-'), compYear: date.split('-')[0] })
+                    }}
                   />
                 </div>
                 <div>
@@ -669,7 +667,7 @@ export default function CompetitionsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium">比赛项目</label>
-                  <Select value={formData.compEventsCn} onValueChange={(value) => setFormData({ ...formData, compEventsCn: value })}>
+                  <Select disabled={dialogType === 'view'} value={formData.compEventsCn} onValueChange={(value) => setFormData({ ...formData, compEventsCn: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="选择比赛项目" />
                     </SelectTrigger>
@@ -685,7 +683,7 @@ export default function CompetitionsPage() {
                 </div>
                 <div>
                   <label className="text-sm font-medium">胜负</label>
-                  <Select value={formData.matchResult} onValueChange={(value) => setFormData({ ...formData, matchResult: value })}>
+                  <Select disabled={dialogType === 'view'} value={formData.matchResult} onValueChange={(value) => setFormData({ ...formData, matchResult: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="选择胜负" />
                     </SelectTrigger>
