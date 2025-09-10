@@ -8,8 +8,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePlayers, useUpdatePlayer, useAddPlayer, useDeletePlayer } from '@/hooks/use-api';
+import { useThrottle } from '@/hooks/use-throttle';
 import { Player, PlayerQueryRequest, PlayerAddRequest } from '@/types';
-import { Edit, Eye, Search, Plus, Trash2 } from 'lucide-react';
+import { Edit, Eye, Plus, Trash2 } from 'lucide-react';
 
 export default function PlayersPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -30,27 +31,28 @@ export default function PlayersPage() {
   const [modalType, setModalType] = useState<'add' | 'edit' | 'view'>('edit');
   const [currentPage, setCurrentPage] = useState(1);
   const [name, setName] = useState('')
+  
+  // 使用节流处理搜索输入
+  const throttledName = useThrottle(name, 500);
+  
   const [requestParams, setRequestParams] = useState<PlayerQueryRequest>({
     current: currentPage,
     size: 10,
     name: ''
   });
 
+  // 当节流后的搜索词或页码变化时，更新请求参数
   useEffect(() => {
     setRequestParams({
-      ...requestParams,
       current: currentPage,
+      size: 10,
+      name: throttledName
     });
-  }, [currentPage]);
+  }, [currentPage, throttledName]);
 
   const handleReset = () => {
     setCurrentPage(1);
     setName('');
-    setRequestParams({
-      current: 1,
-      size: 10,
-      name: ''
-    });
   };
   
   const { data: playerData, isLoading } = usePlayers(requestParams);
@@ -58,15 +60,6 @@ export default function PlayersPage() {
   const updatePlayerMutation = useUpdatePlayer();
   const addPlayerMutation = useAddPlayer();
   const deletePlayerMutation = useDeletePlayer();
-  
-  const handleSearch = () => {
-    setCurrentPage(1);
-    setRequestParams({
-      ...requestParams,
-      name: name,
-      current: 1,
-    });
-  };
 
   const handleEdit = (player: Player) => {
     setEditingPlayer(player);
@@ -175,7 +168,10 @@ export default function PlayersPage() {
                 <Input
                   placeholder="请输入运动员名称"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setCurrentPage(1)
+                    setName(e.target.value)
+                  }}
                 />
               </div>
               
@@ -183,10 +179,6 @@ export default function PlayersPage() {
             <div className="flex justify-end space-x-2 mt-4">
               <Button variant="outline" onClick={handleReset}>
                 重置
-              </Button>
-              <Button onClick={handleSearch}>
-                <Search className="w-4 h-4 mr-2" />
-                搜索
               </Button>
             </div>
           </div>

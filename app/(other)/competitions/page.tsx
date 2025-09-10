@@ -8,8 +8,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCompetitions, useUpdateCompetitionInfo, useDeleteCompetition, useAddCompetition, usePlayers } from '@/hooks/use-api';
+import { useThrottle } from '@/hooks/use-throttle';
 import { Competition, CompetitionListRequest, CompetitionUpdateRequest, CompetitionAddRequest, Player } from '@/types';
-import { Edit, Eye, Search, Plus, Trash2 } from 'lucide-react';
+import { Edit, Eye, Plus, Trash2 } from 'lucide-react';
 import { MultiSelect, MultiSelectOption } from '@/components/ui/multi-select';
 
 export default function CompetitionsPage() {
@@ -19,6 +20,21 @@ export default function CompetitionsPage() {
   const [selectedOpponents, setSelectedOpponents] = useState<MultiSelectOption[]>([]);
   const [playerSearchQuery, setPlayerSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [filters, setFilters] = useState({
+    compNameCn: '',
+    rivalChineseName: '',
+    compEventsCn: '',
+    matchResult: ''
+  });
+
+  const setParams = (data) => {
+    setCurrentPage(1);
+    setFilters(data);
+  }
+
+  // 使用节流处理搜索输入
+  const throttledFilters = useThrottle(filters, 500);
+
   const [requestParams, setRequestParams] = useState<CompetitionListRequest>({
     current: currentPage,
     size: 10,
@@ -28,19 +44,17 @@ export default function CompetitionsPage() {
     matchResult: ''
   });
 
+  // 当节流后的筛选条件或页码变化时，更新请求参数
   useEffect(() => {
     setRequestParams({
-      ...requestParams,
       current: currentPage,
+      size: 10,
+      compNameCn: throttledFilters.compNameCn,
+      rivalChineseName: throttledFilters.rivalChineseName,
+      compEventsCn: throttledFilters.compEventsCn,
+      matchResult: throttledFilters.matchResult
     });
-  }, [currentPage]);
-
-  const [filters, setFilters] = useState({
-    compNameCn: '',
-    rivalChineseName: '',
-    compEventsCn: '',
-    matchResult: ''
-  });
+  }, [currentPage, throttledFilters]);
 
   const [formData, setFormData] = useState<CompetitionUpdateRequest>({
     id: 0,
@@ -98,7 +112,7 @@ export default function CompetitionsPage() {
         return {
           id: matchedPlayer!.id, // 如果匹配不到，使用临时ID
           value: matchedPlayer!.chineseName,
-          label: matchedPlayer ? `${matchedPlayer.chineseName} (${matchedPlayer.englishName})` : name.trim()
+          label: matchedPlayer ? `${matchedPlayer.chineseName} (${matchedPlayer.englishName})` : playerId
         };
       });
       setSelectedOpponents(opponents);
@@ -303,18 +317,6 @@ export default function CompetitionsPage() {
     }
   };
 
-  const handleSearch = () => {
-    setCurrentPage(1);
-    setRequestParams({
-      ...requestParams,
-      compNameCn: filters.compNameCn,
-      rivalChineseName: filters.rivalChineseName,
-      compEventsCn: filters.compEventsCn,
-      matchResult: filters.matchResult,
-      current: 1,
-    });
-  };
-
   const handleReset = () => {
     setFilters({
       compNameCn: '',
@@ -323,14 +325,6 @@ export default function CompetitionsPage() {
       matchResult: ''
     });
     setCurrentPage(1);
-    setRequestParams({
-      ...requestParams,
-      compNameCn: '',
-      rivalChineseName: '',
-      compEventsCn: '',
-      matchResult: '',
-      current: 1,
-    });
   };
 
   const totalPages = Math.ceil((competitionsData?.total || 0) / 10);
@@ -359,7 +353,7 @@ export default function CompetitionsPage() {
                 <Input
                   placeholder="请输入比赛名称"
                   value={filters.compNameCn}
-                  onChange={(e) => setFilters({ ...filters, compNameCn: e.target.value })}
+                  onChange={(e) => setParams({ ...filters, compNameCn: e.target.value })}
                 />
               </div>
               <div>
@@ -367,12 +361,12 @@ export default function CompetitionsPage() {
                 <Input
                   placeholder="请输入对手姓名"
                   value={filters.rivalChineseName}
-                  onChange={(e) => setFilters({ ...filters, rivalChineseName: e.target.value })}
+                  onChange={(e) => setParams({ ...filters, rivalChineseName: e.target.value })}
                 />
               </div>
               <div>
                 <label className="text-sm font-medium">比赛项目</label>
-                <Select value={filters.compEventsCn} onValueChange={(value) => setFilters({ ...filters, compEventsCn: value })}>
+                <Select value={filters.compEventsCn} onValueChange={(value) => setParams({ ...filters, compEventsCn: value })}>
                   <SelectTrigger>
                     <SelectValue placeholder="选择比赛项目" />
                   </SelectTrigger>
@@ -388,7 +382,7 @@ export default function CompetitionsPage() {
               </div>
               <div>
                 <label className="text-sm font-medium">比赛结果</label>
-                <Select value={filters.matchResult} onValueChange={(value) => setFilters({ ...filters, matchResult: value })}>
+                <Select value={filters.matchResult} onValueChange={(value) => setParams({ ...filters, matchResult: value })}>
                   <SelectTrigger>
                     <SelectValue placeholder="选择比赛结果" />
                   </SelectTrigger>
@@ -402,10 +396,6 @@ export default function CompetitionsPage() {
             <div className="flex justify-end space-x-2 mt-4">
               <Button variant="outline" onClick={handleReset}>
                 重置
-              </Button>
-              <Button onClick={handleSearch}>
-                <Search className="w-4 h-4 mr-2" />
-                搜索
               </Button>
             </div>
           </div>
