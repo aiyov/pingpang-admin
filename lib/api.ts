@@ -114,7 +114,7 @@ export const updateCompetition = async (data: CompetitionUpdateRequest): Promise
 
 // 删除比赛
 export const deleteCompetition = async (id: number): Promise<void> => {
-  const response = await fetcher('/system/comp_info/delete?id=' + id, {
+  const response = await fetcher('/system/delete/comp_info?id=' + id, {
     method: 'POST'
   });
   return response as void;
